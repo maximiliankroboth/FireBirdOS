@@ -1,0 +1,81 @@
+!macro switch16bit {
+REP #$30
+!al
+}
+
+!macro switch8bit {
+SEP #$30
+!as
+}
+
+!macro refresh_memory {
+LDA CURRENT_SCREEN_Y
+STA $300
+}
+	
+!macro initscreen {
+LDA #$0
+STA $308
+STA $309
+STA $30A
+STA $30B
+
+LDA #$50
+STA $30C
+LDA #$30
+STA $30D
+
+LDA #$03
+STA $307
+
+LDA #$0
+STA CURRENT_SCREEN_Y
++refresh_memory
+}
+
+!macro initmmu {
++switch16bit
+LDA #$01
+MMU #$00
+LDA #$300
+MMU #$01
+MMU #$02
+
+LDA #$400
+MMU #$03
+MMU #$04
+
+LDA #$500
+MMU #$06
+
++initscreen
++switch8bit
+}
+
+!macro enter {
+PHA
+PHX
+PHY
+STA LOCAL_A
+STX LOCAL_X
+STY LOCAL_Y
+}
+
+!macro leave {
+LDA #$0
+STA LOCAL_A
+STA LOCAL_X
+STA LOCAL_Y
+PLY
+PLX
+PLA
+}
+
+!macro update_cursor {
+PHA
+LDA CURRENT_SCREEN_X
+STA $301
+LDA CURRENT_SCREEN_Y
+STA $302
+PLA
+}
