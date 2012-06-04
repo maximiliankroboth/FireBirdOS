@@ -1,0 +1,83 @@
+!macro set_emulation_flag {
+CLC
+XCE
+}
+!macro switch_to_16_bit {
+REP #$30
+!al
+}
+!macro switch_to_8_bit {
+SEP #$30
+!as
+}
+!macro init {
+LDA #$1
+MMU #$0
+LDA #$300
+MMU #1
+MMU #2
+LDA #$400
+MMU #$3
+MMU #$4
+LDA #$500
+MMU #$6
+LDA #$0
+STA $308
+STA $309
+STA $30A
+STA $30B
+LDA #$50
+STA $30C
+LDA #$32
+STA $30D
+LDA #$3
+STA $307
+LDA #$1
+STA $300
+}
+
+
+!macro call .subroutine {
+		PHA
+		PHX
+		PHY
+		JSR .subroutine
+		PLY
+		PLX
+		PLA
+}
+
+!macro setscrx .x {
+	LDA .x
+	STA $301
+}
+
+!macro setscry .y {
+	LDA .y
+	STA $302
+}
+
+!macro getscrx {
+	LDA $301
+}
+
+
+!macro getscry {
+	LDA $302
+}
+
+!macro print .addr {
+PHA
+PHX
+LDX #$0
+.loop
+LDA .addr,X
+CMP #$00
+BEQ +
+INX
++call chrout
+JMP .loop
++
+PLX
+PLA
+}

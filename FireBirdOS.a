@@ -1,0 +1,18 @@
+!to "firebird.bin", plain
+!cpu 65EL02
+!src "MacroLibrary0.a"
+*=$500
++set_emulation_flag
++switch_to_16_bit
++init 
++switch_to_8_bit
+.entrypoint
++print .msg
+;; TODO: Load User Program
+.end:
+STP
+JMP .end
+.msg: 
+!text "Fire Bird OS Gestartet!", $0D, "Warte auf User Programm...", $00
+!src "kernel.a"
+!fi 128, $00

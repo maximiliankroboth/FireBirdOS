@@ -1,0 +1,170 @@
+*=$1000
+ret:
+ret0:
+	!byte $fe
+ret1:
+	!byte $fe
+tmp:
+tmp0:
+	!byte $fe
+tmp1:
+	!byte $fe
+dskmem:
+	 !fi $fe, $fe
+; Function Vector Table
+chrout:
+	JMP .chrout
+chrin:
+	JMP .chrin
+ioxwrite:
+	JMP .ioxwrite
+ioxread:
+	JMP .ioxread
+ioxset:
+	JMP .ioxset
+ioxrst:
+	JMP .ioxrst
+dskread:
+	JMP .dskread
+dskwrt:
+	JMP .dskwrt
+mapdev:
+	JMP .mapdev
+; ===========================================
+; Functions
+.chrout:
+	LDX $301
+	LDY $302
+	CMP #$0D
+	BEQ .nl
+	CMP $0A
+	BEQ .nl
+	STY $300
+	STA $310, X
+	INX
+	BEQ .nl
+	JMP .e 
+.nl:
+	INY
+	LDX #$00
+.e:
+	STX $301
+	STY $302
+	LDA #$4F
+	CMP $301
+	BEQ .nwl
+	JMP .ext
+	.nwl:
+	INC $302
+	LDX #$0
+	STX $301
+	.ext:
+RTS
+
+.ioxwrite:
+	STA $302
+	TXA
+	STA $303
+RTS
+
+
+.ioxread:
+	LDA $300
+	STA ret
+RTS
+
+.chrin:
+!zone {
+.keyloop:
+	WAI
+	LDA $304
+	CMP $305
+	BNE +
+	JMP .keyloop
++	LDA #$00
+	STA $305
+	LDA $306
+	STA ret
+}
+RTS
+
+.mapdev:
+	MMU #$0
+RTS
+
+
+
+.dskread
+!zone{
+MMU #$0
+TXA
+STA $380
+TYA
+STA $381
+
+LDA #$4
+STA $382
+
+-- WAI
+LDA $382
+CMP #$FF
+BEQ .Fault
+CMP #0
+BNE --
+
+LDX #$0
+
+- LDA $300,X 
+STA dskmem,X
+INX
+CPX #$FF
+BNE -
+
+.Fault
+}
+RTS
+.dskwrt
+!zone {
+- CMP $382
+BMI .Fault
+BEQ +
+WAI
+JMP -
++
+LDX #$0
+-
+LDA dskmem, X
+STA $300, X
+INX
+CPX #$80
+BNE -
+LDA #$5
+STA $382
+-- WAI
+LDA $382
+CMP #$FF
+BEQ .Fault
+CMP #0
+BNE --
+.Fault
+}
+RTS
+
+.ioxset:
++call ioxread
+
+ORA ret0
+STA tmp0
+TXA
+ORA ret1
+STA tmp1
+LDA tmp0
+LDX tmp1
++call ioxwrite
+
+RTS
+
+.ioxrst:
+
+RTS
+
